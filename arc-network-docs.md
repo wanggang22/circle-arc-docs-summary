@@ -2,7 +2,7 @@
 
 > Source: https://docs.arc.network (24 pages)
 > Generated: 2026-03-04
-> Coverage: Concepts (7) | References (5) | Tools (5) | Tutorials (7)
+> Coverage: Concepts (7) | References (5) | Tools (5) | Tutorials (8)
 
 ---
 
@@ -36,6 +36,7 @@
   - [4.5 Bridge USDC to Arc](#45-bridge-usdc-to-arc)
   - [4.6 Transfer USDC or EURC](#46-transfer-usdc-or-eurc)
   - [4.7 Access USDC Crosschain (Gateway)](#47-access-usdc-crosschain-gateway)
+  - [4.8 Register Your First AI Agent (ERC-8004)](#48-register-your-first-ai-agent-erc-8004)
 
 ---
 
@@ -1603,6 +1604,118 @@ CCTP Domain:     26
 EVM Target:      Prague
 ```
 
+## 4.8 Register Your First AI Agent (ERC-8004)
+
+> Source: https://docs.arc.network/arc/tutorials/register-your-first-ai-agent
+
+Register AI agents with onchain identity using the **ERC-8004** standard. Covers identity registration, reputation tracking, and credential validation on Arc Testnet using Circle's Developer-Controlled Wallets API.
+
+### ERC-8004 Contract Addresses
+
+| Contract | Address | Purpose |
+|----------|---------|---------|
+| IdentityRegistry | `0x8004A818BFB912233c491871b3d84c89A494BD9e` | Agent identity (ERC-721 NFT) |
+| ReputationRegistry | `0x8004B663056A597Dffe9eCcC1965A193B7388713` | Reputation scoring |
+| ValidationRegistry | `0x8004Cb1BF31DAf7788923b405b754f57acEB4272` | Credential validation |
+
+### Prerequisites
+- Circle Developer Console account + API Key (Standard Key)
+- Registered Entity Secret
+
+### Setup
+```bash
+npm install @circle-fin/developer-controlled-wallets viem
+```
+
+### Step 1: Create Two Developer-Controlled Wallets
+
+Two wallets required: **owner** (registers agent) and **validator** (records reputation). Per ERC-8004: "agent owners cannot record reputation for their own agents to prevent self-dealing."
+
+```javascript
+const walletSet = await circleClient.createWalletSet({ name: "ERC8004 Agent Wallets" });
+const wallets = await circleClient.createWallets({
+  blockchains: ["ARC-TESTNET"], count: 2,
+  walletSetId: walletSet.data?.walletSet?.id, accountType: "SCA",
+});
+const ownerWallet = wallets.data?.wallets?.[0];
+const validatorWallet = wallets.data?.wallets?.[1];
+```
+
+### Step 2: Prepare Agent Metadata
+
+Upload JSON metadata to IPFS (name, description, capabilities, version). Test URI: `ipfs://bafkreibdi6623n3xpf7ymk62ckb4bo75o3qemwkpfvp5i25j66itxvsoei`
+
+### Step 3: Register Agent Identity
+
+Call `register(string metadataURI)` on IdentityRegistry → mints ERC-721 identity NFT.
+
+```javascript
+await circleClient.createContractExecutionTransaction({
+  walletAddress: ownerWallet.address, blockchain: "ARC-TESTNET",
+  contractAddress: "0x8004A818BFB912233c491871b3d84c89A494BD9e",
+  abiFunctionSignature: "register(string)",
+  abiParameters: [METADATA_URI],
+  fee: { type: "level", config: { feeLevel: "MEDIUM" } },
+});
+```
+
+### Step 4: Retrieve Agent ID
+
+Query Transfer events from IdentityRegistry to find the minted tokenId.
+
+### Step 5: Record Reputation
+
+Validator wallet calls `giveFeedback(uint256 agentId, int128 score, uint8 feedbackType, string tag, ...)` on ReputationRegistry.
+
+```javascript
+// score: 95, feedbackType: 0, tag: "successful_trade"
+await circleClient.createContractExecutionTransaction({
+  walletAddress: validatorWallet.address,
+  contractAddress: "0x8004B663056A597Dffe9eCcC1965A193B7388713",
+  abiFunctionSignature: "giveFeedback(uint256,int128,uint8,string,string,string,string,bytes32)",
+  abiParameters: [agentId, "95", "0", tag, "", "", "", feedbackHash],
+  ...
+});
+```
+
+### Step 6: Request Validation
+
+Owner calls `validationRequest(address validator, uint256 agentId, string requestURI, bytes32 requestHash)` on ValidationRegistry.
+
+### Step 7: Validator Response
+
+Validator calls `validationResponse(bytes32 requestHash, uint8 response, string responseURI, bytes32 responseHash, string tag)`. Response: **100 = passed, 0 = failed**.
+
+### Step 8: Verify Validation Status
+
+Query `getValidationStatus(bytes32 requestHash)` → returns (validatorAddress, agentId, response, responseHash, tag, lastUpdate).
+
+### Key Rules
+- **Owner ≠ Validator**: Cannot self-report reputation (anti-self-dealing)
+- **Score range**: int128 for reputation, uint8 for validation (100=pass, 0=fail)
+- **Gas**: ~0.006 USDC per transaction with Circle Gas Station
+- **Cast wallet alternative**: Can use EOA wallets with `cast send` instead of Circle API; need a second EOA for validator (transfer 1 USDC for gas)
+
+### Function Signatures
+
+```
+IdentityRegistry:
+  register(string metadataURI) → mints ERC-721
+
+ReputationRegistry:
+  giveFeedback(uint256 agentId, int128 score, uint8 feedbackType,
+               string tag, string comment, string uri, string metadata, bytes32 hash)
+
+ValidationRegistry:
+  validationRequest(address validator, uint256 agentId, string requestURI, bytes32 requestHash)
+  validationResponse(bytes32 requestHash, uint8 response, string responseURI, bytes32 responseHash, string tag)
+  getValidationStatus(bytes32 requestHash) → (address, uint256, uint8, bytes32, string, uint256)
+```
+
+---
+
+# Quick Reference
+
 ## Key Addresses
 
 ```
@@ -1613,6 +1726,9 @@ MessageTransmitter:0xE737e5cEBEEBa77EFE34D4aa090756590b1CE275
 TokenMinterV2:     0xb43db544E2c27092c107639Ad201b3dEfAbcF192
 GatewayWallet:     0x0077777d7EBA4688BDeF3E311b846F25870A19B9
 GatewayMinter:     0x0022222ABE238Cc2C7Bb1f21003F0a260052475B
+IdentityRegistry:  0x8004A818BFB912233c491871b3d84c89A494BD9e  (ERC-8004)
+ReputationRegistry:0x8004B663056A597Dffe9eCcC1965A193B7388713  (ERC-8004)
+ValidationRegistry:0x8004Cb1BF31DAf7788923b405b754f57acEB4272  (ERC-8004)
 FxEscrow:          0x867650F5eAe8df91445971f14d89fd84F0C9a9f8
 CREATE2 Factory:   0x4e59b44847b379578588920cA78FbF26c0B4956C
 Multicall3:        0xcA11bde05977b3631167028862bE2a173976CA11
