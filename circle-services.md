@@ -649,6 +649,11 @@ String format, two decimal places. Currencies: USD, EUR.
 
 ## 1.19 Release Notes
 
+### 2026 Highlights
+- **Credit API** (April 1) — 全新产品: Settlement Advance + Line of Credit，6+ 新端点 `/v1/credit/*`
+- **Continuous payment intents** (April 2) — 成为默认类型；新增 stablecoin payins/payouts 流程文档
+- **Payin/Payout Quickstart** (April 2) — 3 个 Quickstart 更新 (receipt/refund/payout)
+
 ### 2025 Highlights
 - **13 new blockchain supports** for USDC (Aptos, Unichain, Linea, XRPL, World Chain, Codex, Sei, HyperEVM, XDC, Plume, Ink, Monad, Starknet)
 - EURC added to World Chain
@@ -1223,7 +1228,15 @@ TAX_FEE, BFI_TRANSACTION_FEE, CIRCLE_SERVICE_FEE, BLOCKCHAIN_GAS_FEE (V2 only).
 
 ---
 
-## 2.17 CPN Release Notes 2025
+## 2.17 CPN Release Notes
+
+### 2026 (Console 2.0)
+- **3 个新增 How-to 指南** (~April 1):
+  - 设置 Circle Wallet 用于 CPN 支付
+  - Circle On/Off-Ramps 配置
+  - Bring Your Own Wallet (外部钱包使用 CPN)
+- CPN Overview 和 OFI Quickstart 更新
+- Webhook Events 文档更新
 
 ### August 2025
 - Payment failure codes added

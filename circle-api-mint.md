@@ -1,6 +1,6 @@
 # Circle Mint API Reference - Complete Summary
 
-> Generated from 63 Circle Developer Documentation pages
+> Generated from 63+9 Circle Developer Documentation pages (updated 2026-04-06: +Credit API)
 > Base URLs: `https://api-sandbox.circle.com` (Sandbox) | `https://api.circle.com` (Production)
 > Authentication: Bearer token required on all endpoints unless noted otherwise
 
@@ -27,6 +27,7 @@
 17. [Reserve Management](#17-reserve-management)
 18. [Notifications (Subscriptions)](#18-notifications-subscriptions)
 19. [Common Patterns](#19-common-patterns)
+20. [Credit API (Settlement Advance & Line of Credit)](#20-credit-api-settlement-advance--line-of-credit)
 
 ---
 
@@ -1557,6 +1558,75 @@ Identity information required when:
 
 ---
 
+## 20. Credit API (Settlement Advance & Line of Credit)
+
+> Source: https://developers.circle.com/circle-mint/credit-api
+> Launched: 2026-04-01 | Requires: Institutional Circle Mint account + approved credit facility
+
+### Overview
+Programmatic management of Settlement Advance and Line of Credit products. Requires offline credit agreement with Circle.
+
+### Products
+
+| Product | Flow | Fee Model | Repayment |
+|---------|------|-----------|-----------|
+| **Settlement Advance** | Reserve → Wire proof → Treasury review → Disburse | Draw fee + daily accrued | Wire only |
+| **Line of Credit** | Request → Auto-approve → Disburse | Daily accrued (no draw fee) | Crypto (from wallet) or Wire |
+
+### Credit Line Object
+
+| Field | Description |
+|-------|-------------|
+| `product` | `settlementAdvance` or `lineOfCredit` |
+| `status` | `active` |
+| `limit` | Total credit limit (e.g., $500K) |
+| `used` / `available` | Current usage |
+| `feeRates.drawFee` | One-time draw fee rate (Settlement Advance only) |
+| `feeRates.dailyFee` | Daily accrued fee rate |
+| `minBalance` | Minimum USDC balance required in Mint wallet |
+| `validationErrors` | `INSUFFICIENT_BALANCE`, `PENDING_FEES`, `OVERDUE_TRANSFERS` |
+
+### Transfer States
+
+```
+Settlement Advance:
+  funds_reserved → requested → disbursed → paid
+  funds_reserved → expired | canceled
+  requested → rejected
+  disbursed → past_due → paid
+
+Line of Credit:
+  requested → disbursed → paid
+  requested → rejected
+  disbursed → past_due → paid
+```
+
+### Endpoints
+
+| # | Method | Path | Description |
+|---|--------|------|-------------|
+| 1 | GET | `/v1/credit` | Get credit line status |
+| 2 | GET | `/v1/credit/wireInstructions` | Get wire transfer instructions |
+| 3 | POST | `/v1/credit/transfers/reserveFunds` | Reserve funds (Settlement Advance) |
+| 4 | PUT | `/v1/credit/transfers/{id}/requestReservedFunds` | Upload wire proof (multipart/form-data: PDF/JPEG/PNG) |
+| 5 | PUT | `/v1/credit/transfers/{id}/cancelReserve` | Cancel reservation (must be `funds_reserved`) |
+| 6 | POST | `/v1/credit/transfers` | Request draw (Line of Credit, auto-approved) |
+| 7 | GET | `/v1/credit/transfers/{id}` | Get transfer status |
+| 8 | POST | `/v1/credit/cryptoRepayment` | Repay from wallet (LoC only, capped at outstanding) |
+| 9 | GET | `/v1/credit/repayments` | List repayments |
+
+### Key Constraints
+- Settlement Advance: Reserved funds expire after **30 minutes**; only one `funds_reserved` at a time per credit line
+- Line of Credit: Crypto repayment capped at outstanding balance
+- Sandbox: Use amount `119.53` to simulate rejection
+
+### Webhook Events
+- `creditTransfers` — Status changes (reserved → disbursed etc.)
+- `creditFees` — Fee accrual notifications
+- `creditRepayments` — Repayment allocation updates
+
+---
+
 ## Quick Reference: All Endpoints
 
 | # | Method | Path | Feature |
@@ -1624,3 +1694,12 @@ Identity information required when:
 | 61 | POST | `/v1/notifications/subscriptions` | Create subscription |
 | 62 | GET | `/v1/notifications/subscriptions` | List subscriptions |
 | 63 | DELETE | `/v1/notifications/subscriptions/{id}` | Delete subscription |
+| 64 | GET | `/v1/credit` | Credit line status |
+| 65 | GET | `/v1/credit/wireInstructions` | Credit wire instructions |
+| 66 | POST | `/v1/credit/transfers/reserveFunds` | Reserve funds (Settlement Advance) |
+| 67 | PUT | `/v1/credit/transfers/{id}/requestReservedFunds` | Upload wire proof |
+| 68 | PUT | `/v1/credit/transfers/{id}/cancelReserve` | Cancel reservation |
+| 69 | POST | `/v1/credit/transfers` | Request draw (Line of Credit) |
+| 70 | GET | `/v1/credit/transfers/{id}` | Get credit transfer |
+| 71 | POST | `/v1/credit/cryptoRepayment` | Crypto repayment (LoC) |
+| 72 | GET | `/v1/credit/repayments` | List repayments |

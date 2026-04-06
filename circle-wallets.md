@@ -1144,6 +1144,8 @@ const result = await kit.bridge({
 - **Fee Response Fields** (August) — `networkFeeRaw` added
 
 ### 2026 Highlights
+- **Solana ATA 创建指南** (March 12) — 新增 how-to: 当 Gas Station 不 sponsor 时手动创建/资助 Solana ATA
+- **React Native SDK 改版** (March 4) — 分离当前版和 Legacy V1，大规模重构
 - **Solana ATA Sponsorship** (January 28) — Gas Station covers ATA rent deposits
 - **Quickstart Overhaul** (January 20) — Social login, email OTP, PIN guides restructured for end-to-end clarity
 

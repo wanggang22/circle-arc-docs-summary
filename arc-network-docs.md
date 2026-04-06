@@ -1,8 +1,8 @@
 # Arc Network Documentation - Complete Technical Reference
 
-> Source: https://docs.arc.network (24 pages)
-> Generated: 2026-03-04
-> Coverage: Concepts (7) | References (5) | Tools (5) | Tutorials (8)
+> Source: https://docs.arc.network (50 pages)
+> Generated: 2026-03-04 | Updated: 2026-04-06
+> Coverage: Concepts (8) | References (5) | Tools (5) | Tutorials (9) | App Kit (25)
 
 ---
 
@@ -16,6 +16,7 @@
   - [1.5 Deterministic Finality](#15-deterministic-finality)
   - [1.6 Opt-in Privacy](#16-opt-in-privacy)
   - [1.7 Stable Fee Design](#17-stable-fee-design)
+  - [1.8 Post-Quantum Security](#18-post-quantum-security)
 - [Part 2: References](#part-2-references)
   - [2.1 Connect to Arc](#21-connect-to-arc)
   - [2.2 Contract Addresses](#22-contract-addresses)
@@ -37,6 +38,18 @@
   - [4.6 Transfer USDC or EURC](#46-transfer-usdc-or-eurc)
   - [4.7 Access USDC Crosschain (Gateway)](#47-access-usdc-crosschain-gateway)
   - [4.8 Register Your First AI Agent (ERC-8004)](#48-register-your-first-ai-agent-erc-8004)
+  - [4.9 Create Your First ERC-8183 Job](#49-create-your-first-erc-8183-job)
+- [Part 5: App Kit](#part-5-app-kit)
+  - [5.1 Overview](#51-overview)
+  - [5.2 Installation & Adapters](#52-installation--adapters)
+  - [5.3 Bridge](#53-bridge)
+  - [5.4 Swap](#54-swap)
+  - [5.5 Send](#55-send)
+  - [5.6 Bridge Fees](#56-bridge-fees)
+  - [5.7 Swap Fees](#57-swap-fees)
+  - [5.8 Supported Blockchains](#58-supported-blockchains)
+  - [5.9 Error Recovery](#59-error-recovery)
+  - [5.10 SDK Reference](#510-sdk-reference)
 
 ---
 
@@ -64,11 +77,11 @@ Arc is an **open Layer-1 blockchain** purpose-built to unite programmable money 
 - **Circle full-stack integration** - CCTP, Gateway, Developer Wallets, Smart Contract Platform
 
 ### Target Use Cases
-1. Onchain credit
-2. Capital markets settlement
-3. Stablecoin FX
-4. Agentic commerce
-5. Cross-border payments
+1. **Onchain credit** - Identity-based lending, reputation-driven credit, SMB/consumer credit for underserved markets
+2. **Capital markets settlement** - Tokenized securities with instant DvP, collateral management, tokenized funds, prediction markets
+3. **Stablecoin FX** - Perpetuals/derivatives on stablecoin pairs, swap APIs, multi-currency treasury tools
+4. **Agentic commerce** - AI-mediated marketplaces, machine-to-machine payments (IoT), agent intent matching and settlement
+5. **Cross-border payments** - Remittance platforms, marketplace/gig/payroll payouts, trade finance with tokenized invoices
 
 ### Multichain Alignment
 - Circle CCTP for cross-chain USDC transfers
@@ -325,6 +338,34 @@ Arc modifies Ethereum's EIP-1559 model:
 
 ---
 
+## 1.8 Post-Quantum Security
+
+> Source: https://docs.arc.network/arc/concepts/post-quantum-security
+
+Arc implements a phased roadmap to protect against quantum computing threats, addressing the "harvest-now, decrypt-later" risk where attackers store encrypted data today for future quantum decryption.
+
+### Threat Model
+- Signature forgery: Quantum computers could forge wallet signatures and forge transactions
+- Harvest attacks: Encrypted data stored now could be decrypted by future quantum systems
+- Blockchain permanence: On-chain data is forever, so defenses must precede practical quantum computers
+
+### Implementation Roadmap
+
+| Phase | Scope | Protection |
+|-------|-------|-----------|
+| **Mainnet Launch** | Wallet signatures | Post-quantum `SLH-DSA-SHA2-128s` signing (opt-in, no forced migration) |
+| **Near-term** | Arc Privacy | Post-quantum encryption for encrypted state, private communications, confidential balances |
+| **Mid-term** | Infrastructure | TLS, cloud servers, HSM hardware, encrypted data systems |
+| **Long-term** | Validator layer | Post-quantum validator signatures (lower priority — shorter exploitation windows) |
+
+### Key Considerations
+- Hardware wallet support requires ecosystem maturation
+- Evolving NIST standards may change long-term signature schemes
+- Transition period expected as tooling, wallets, and integrations mature
+- Opt-in approach: users can create quantum-resistant wallets without forced migration
+
+---
+
 # Part 2: References
 
 ## 2.1 Connect to Arc
@@ -415,6 +456,7 @@ Block Explorer:  https://testnet.arcscan.app
 | Contract | Address |
 |----------|---------|
 | FxEscrow | `0x867650F5eAe8df91445971f14d89fd84F0C9a9f8` |
+| AgenticCommerce | `0x0747EEf0706327138c69792bF28Cd525089e4583` |
 
 ### Common Ethereum Predeployed Contracts
 
@@ -526,6 +568,16 @@ Monitor current fees at: https://testnet.arcscan.app/gas-tracker
 - **Description:** Unified USDC balance and cross-chain transfers
 - **Tech Stack:** Circle Gateway, Next.js, Supabase
 - **Features:** Cross-chain transfer capability, unified USDC balance management
+
+### Arc Escrow
+- **Repository:** https://github.com/circlefin/arc-escrow
+- **Description:** AI-powered work validation and USDC settlement to automate escrow flows
+- **Tech Stack:** Circle Wallets, Refund Protocol, Contract Platform
+
+### Arc Fintech
+- **Repository:** https://github.com/circlefin/arc-fintech
+- **Description:** Multichain treasury system with cross-chain capital movement
+- **Tech Stack:** Circle Developer-Controlled Wallets, Gateway, Bridge Kit
 
 ---
 
@@ -1714,6 +1766,542 @@ ValidationRegistry:
 
 ---
 
+## 4.9 Create Your First ERC-8183 Job
+
+> Source: https://docs.arc.network/arc/tutorials/create-your-first-erc-8183-job
+
+Create and complete an **ERC-8183 Agentic Commerce** job on Arc Testnet. The workflow involves two wallets (client/evaluator and provider) moving through distinct job states.
+
+### Contract
+
+| Contract | Address |
+|----------|---------|
+| AgenticCommerce | `0x0747EEf0706327138c69792bF28Cd525089e4583` |
+
+### Job State Machine
+
+```
+Open → Funded → Submitted → Completed
+```
+
+### Two Implementation Paths
+1. **Circle Developer-Controlled Wallets** - `@circle-fin/developer-controlled-wallets` + `viem`
+2. **Viem with Self-Managed Wallets** - `viem` only, two EOA wallets with USDC
+
+### Setup
+```bash
+npm install @circle-fin/developer-controlled-wallets viem  # Path 1
+npm install viem                                            # Path 2
+```
+
+### Workflow (8 Steps)
+
+**Step 1: Wallet Preparation** - Create/prepare two wallets: **client** (posts job + pays) and **provider** (executes job)
+
+**Step 2: Fund Client Wallet** - Get testnet USDC from Circle faucet
+
+**Step 3: Create Job**
+```javascript
+// Client calls createJob with provider address, evaluator address, expiry, description, hook
+createJob(provider, evaluator, expiredAt, description, hook)
+```
+
+**Step 4: Set Budget** - Provider calls `setBudget(jobId, amount, optParams)` to propose cost
+
+**Step 5: Approve & Fund Escrow** - Client approves USDC transfer, then calls `fund(jobId, optParams)` to lock USDC in escrow
+
+**Step 6: Submit Deliverable** - Provider submits `bytes32` deliverable hash via `submit(jobId, deliverable, optParams)`
+
+**Step 7: Complete Job** - Evaluator calls `complete(jobId, reason, optParams)` → USDC released from escrow to provider
+
+**Step 8: Verify State** - Query final job status confirming "Completed" state
+
+### Function Signatures
+
+```
+AgenticCommerce:
+  createJob(address provider, address evaluator, uint256 expiredAt,
+            string description, address hook) → uint256 jobId
+  setBudget(uint256 jobId, uint256 amount, bytes optParams)
+  fund(uint256 jobId, bytes optParams)
+  submit(uint256 jobId, bytes32 deliverable, bytes optParams)
+  complete(uint256 jobId, string reason, bytes optParams)
+```
+
+### Key Design
+- **Roles**: Client (creates + funds), Provider (executes + submits), Evaluator (validates + releases)
+- **Escrow**: USDC locked on-chain until evaluator approves completion
+- **Companion to ERC-8004**: 8004 provides agent identity → 8183 enables agent-to-agent commerce
+
+---
+
+# Part 5: App Kit
+
+> Source: https://docs.arc.network/app-kit (25 pages)
+
+The **App Kit SDK** enables payment and liquidity workflows across blockchains: Bridge (cross-chain USDC), Swap (same-chain token exchange), and Send (wallet-to-wallet transfer).
+
+## 5.1 Overview
+
+### Core Capabilities
+
+| Capability | Description | Availability |
+|-----------|-------------|-------------|
+| **Bridge** | Transfer USDC across blockchains via CCTP | Testnet + Mainnet |
+| **Swap** | Exchange tokens on the same blockchain | **Mainnet only** |
+| **Send** | Transfer tokens between wallets on same chain | Testnet + Mainnet |
+
+### Quick Example
+
+```typescript
+import { AppKit } from "@circle-fin/app-kit";
+const kit = new AppKit();
+
+// Bridge
+await kit.bridge({
+  from: { adapter, chain: "Ethereum_Sepolia" },
+  to: { adapter, chain: "Arc_Testnet" },
+  amount: "1.00",
+});
+
+// Swap (mainnet only)
+await kit.swap({
+  from: { adapter, chain: "Ethereum" },
+  tokenIn: "USDT", tokenOut: "USDC", amountIn: "1.00",
+  config: { kitKey: "KIT_KEY" },
+});
+
+// Send
+await kit.send({
+  from: { adapter, chain: "Arc_Testnet" },
+  to: "0xRecipient...", amount: "1.00", token: "USDC",
+});
+```
+
+---
+
+## 5.2 Installation & Adapters
+
+### Core Package
+
+```bash
+npm install @circle-fin/app-kit          # Full kit (Bridge + Swap + Send)
+npm install @circle-fin/bridge-kit       # Bridge only (lighter)
+npm install @circle-fin/swap-kit         # Swap only (lighter)
+```
+
+### Adapter Options
+
+| Adapter | Package | Use Case |
+|---------|---------|----------|
+| **Viem v2** | `@circle-fin/adapter-viem-v2 viem` | EVM chains |
+| **Ethers v6** | `@circle-fin/adapter-ethers-v6 ethers` | EVM chains |
+| **Solana** | `@circle-fin/adapter-solana-kit @solana/kit @solana/web3.js` | Solana |
+| **Circle Wallets** | `@circle-fin/adapter-circle-wallets` | Server-side, Circle API |
+
+### Adapter Setup Examples
+
+**Viem (private key):**
+```typescript
+import { createViemAdapterFromPrivateKey } from "@circle-fin/adapter-viem-v2";
+const adapter = createViemAdapterFromPrivateKey({
+  privateKey: process.env.PRIVATE_KEY as string,
+});
+```
+
+**Solana:**
+```typescript
+import { createSolanaKitAdapterFromPrivateKey } from "@circle-fin/adapter-solana-kit";
+const solanaAdapter = createSolanaKitAdapterFromPrivateKey({
+  privateKey: process.env.SOLANA_PRIVATE_KEY as string, // Base58, Base64, or JSON array
+});
+```
+
+**Browser wallet (MetaMask/Phantom):**
+```typescript
+import { createViemAdapterFromProvider } from "@circle-fin/adapter-viem-v2";
+const adapter = createViemAdapterFromProvider({ provider: window.ethereum });
+```
+
+**Circle Wallets (server-side only):**
+- Requires API Key + Entity Secret from Circle Console
+- Does NOT support gas sponsorship for Solana-origin crosschain transfers
+
+### Swap Requirement
+Swap requires a **(free) kit key** from [Circle Console](https://console.circle.com).
+
+---
+
+## 5.3 Bridge
+
+> Source: https://docs.arc.network/app-kit/bridge + 6 quickstart/tutorial pages
+
+Transfer USDC across blockchains via Circle's CCTP protocol.
+
+### Quickstart: EVM to EVM
+
+```bash
+mkdir app-kit-quickstart-bridge-evm && cd app-kit-quickstart-bridge-evm
+npm init -y
+npm install @circle-fin/app-kit @circle-fin/adapter-viem-v2 viem typescript tsx
+```
+
+```typescript
+import { AppKit } from "@circle-fin/app-kit";
+import { createViemAdapterFromPrivateKey } from "@circle-fin/adapter-viem-v2";
+
+const kit = new AppKit();
+const adapter = createViemAdapterFromPrivateKey({
+  privateKey: process.env.PRIVATE_KEY as string,
+});
+
+const result = await kit.bridge({
+  from: { adapter, chain: "Ethereum_Sepolia" },
+  to: { adapter, chain: "Arc_Testnet" },
+  amount: "1.00",
+});
+// result.steps[] contains: approve → burn → fetchAttestation → mint
+```
+
+Run: `npx tsx --env-file=.env index.ts`
+
+### Quickstart: Solana to EVM
+
+```typescript
+import { createSolanaKitAdapterFromPrivateKey } from "@circle-fin/adapter-solana-kit";
+import { createViemAdapterFromPrivateKey } from "@circle-fin/adapter-viem-v2";
+
+const result = await kit.bridge({
+  from: { adapter: solanaAdapter, chain: "Solana_Devnet" },
+  to: { adapter: evmAdapter, chain: "Arc_Testnet" },
+  amount: "1.00",
+});
+```
+
+### Bridge Configuration
+
+| Option | Description |
+|--------|-------------|
+| `config.transferSpeed` | `"FAST"` or `"SLOW"` (FAST may incur CCTP protocol fee) |
+| `config.customFee` | Added on top of transfer; 10% to Arc, 90% to your fee recipient |
+| `config.maxFee` | Maximum burn fee as human-readable string (e.g., `"1"` = 1 USDC) |
+
+### Cost Estimation
+
+```typescript
+const estimate = await kit.estimateBridge({
+  from: { adapter, chain: "Ethereum_Sepolia" },
+  to: { adapter, chain: "Arc_Testnet" },
+  amount: "100.50", token: "USDC",
+});
+// estimate.fees[], estimate.gasFees[]
+```
+
+### CCTP Forwarding Service
+Eliminates manual attestation fetching. The Forwarding Service submits the mint transaction on the destination chain, deducting a fee from the minted USDC.
+
+---
+
+## 5.4 Swap
+
+> Source: https://docs.arc.network/app-kit/swap + 3 quickstart/tutorial pages
+
+Exchange tokens on the same blockchain. **Mainnet only** - not available on testnets.
+
+### Supported Tokens
+USDC, EURC, USDT, USDe, DAI, PYUSD, WBTC, WETH, WSOL, WAVAX, WPOL, NATIVE
+
+### Quickstart
+
+```typescript
+const result = await kit.swap({
+  from: { adapter, chain: "Ethereum" },
+  tokenIn: "USDT", tokenOut: "USDC", amountIn: "1.00",
+  config: {
+    kitKey: process.env.KIT_KEY as string,
+    slippageBps: 300,  // 3% max slippage
+  },
+});
+// result.txHash, result.amountOut
+```
+
+### Swap Configuration
+
+| Option | Description |
+|--------|-------------|
+| `config.kitKey` | Required. Free key from Circle Console |
+| `config.slippageBps` | Max slippage in basis points (default: 300 = 3%) |
+| `config.stopLimit` | Min acceptable output as human-readable string |
+| `config.allowanceStrategy` | `"permit"` (default, gas-efficient) or `"approve"` |
+| `config.customFee` | Percentage fee; 10% to Arc, 90% to your recipient |
+
+### Rate Estimation
+
+```typescript
+const estimate = await kit.estimateSwap({
+  from: { adapter, chain: "Ethereum" },
+  tokenIn: "USDC", tokenOut: "USDT", amountIn: "100.50",
+  config: { kitKey: "KIT_KEY" },
+});
+// estimate.estimatedOutput, estimate.stopLimit, estimate.fees
+```
+
+---
+
+## 5.5 Send
+
+> Source: https://docs.arc.network/app-kit/send + 1 quickstart page
+
+Transfer tokens between wallets on the same blockchain. Supports token aliases or contract addresses.
+
+### Quickstart
+
+```typescript
+// Send USDC by alias
+await kit.send({
+  from: { adapter, chain: "Arc_Testnet" },
+  to: "0xRecipient...", amount: "1.00", token: "USDC",
+});
+
+// Send custom ERC-20 by contract address
+await kit.send({
+  from: { adapter, chain: "Ethereum" },
+  to: "0xRecipient...", amount: "100.50",
+  token: "0x6B175474E89094C44Da98b954EedeAC495271d0F",  // DAI
+});
+```
+
+### Token Aliases
+`USDC`, `EURC`, `USDT`, `USDe`, `DAI`, `PYUSD`, `NATIVE` — or any ERC-20/SPL contract address.
+
+---
+
+## 5.6 Bridge Fees
+
+### Fee Components
+
+| Fee Type | When Applied | Split |
+|----------|-------------|-------|
+| **Custom Fee** | Always (if configured) | 10% Arc, 90% your recipient |
+| **CCTP Protocol Fee** | Fast transfers only | Varies by source chain |
+| **Forwarding Service Fee** | When using Forwarding Service | Deducted from minted USDC |
+
+### Example: 1,000 USDC Fast Transfer (1% custom fee + Forwarding)
+
+```
+Source wallet approves:  1,010 USDC
+Custom fee (1%):         10 USDC → 1 Arc + 9 recipient
+CCTP protocol fee:       0.10 USDC
+Forwarding Service fee:  0.20 USDC
+Destination receives:    999.70 USDC
+```
+
+---
+
+## 5.7 Swap Fees
+
+### Fee Components
+
+| Fee Type | Rate | Split |
+|----------|------|-------|
+| **Custom Fee** | Configurable | 10% Arc, 90% your recipient |
+| **Provider Fee** | Fixed 2 basis points (0.02%) | Swap service provider |
+
+### Example: 1,000 USDC → USDT (1% custom fee)
+
+```
+User approves:          1,000 USDC
+Custom fee (1%):        10 USDC → 1 Arc + 9 recipient
+Remaining for swap:     990 USDC
+Provider fee (2 bps):   0.198 USDC
+Final swap amount:      989.802 USDC → USDT
+```
+
+---
+
+## 5.8 Supported Blockchains
+
+### Mainnet (20 chains)
+
+| Chain | Bridge | Swap | Send |
+|-------|--------|------|------|
+| Arbitrum | ✅ | ✅ | ✅ |
+| Avalanche | ✅ | ✅ | ✅ |
+| Base | ✅ | ✅ | ✅ |
+| Codex | ✅ | ❌ | ✅ |
+| EDGE | ✅ | ❌ | ✅ |
+| Ethereum | ✅ | ✅ | ✅ |
+| HyperEVM | ✅ | ✅ | ✅ |
+| Ink | ✅ | ✅ | ✅ |
+| Linea | ✅ | ✅ | ✅ |
+| Monad | ✅ | ✅ | ✅ |
+| Morph | ✅ | ❌ | ✅ |
+| OP Mainnet | ✅ | ✅ | ✅ |
+| Plume | ✅ | ✅ | ✅ |
+| Polygon PoS | ✅ | ✅ | ✅ |
+| Sei | ✅ | ✅ | ✅ |
+| Solana | ✅ | ✅ | ✅ |
+| Sonic | ✅ | ✅ | ✅ |
+| Unichain | ✅ | ✅ | ✅ |
+| World Chain | ✅ | ✅ | ✅ |
+| XDC | ✅ | ✅ | ✅ |
+
+### Testnet (21 chains)
+All 21 testnet chains support Bridge and Send. **Swap is not available on testnets.**
+
+Testnets: Arbitrum Sepolia, **Arc Testnet**, Avalanche Fuji, Base Sepolia, Codex Testnet, EDGE Testnet, Ethereum Sepolia, HyperEVM Testnet, Ink Testnet, Linea Sepolia, Monad Testnet, Morph Testnet, OP Sepolia, Plume Testnet, Polygon PoS Amoy, Sei Testnet, Solana Devnet, Sonic Testnet, Unichain Sepolia, World Chain Sepolia, XDC Apothem
+
+### Adapter Compatibility
+
+| Adapter | EVM | Solana | Circle Wallets |
+|---------|-----|--------|----------------|
+| Supported Chains | All 20 | Solana only | 7 mainnet (Arb/Avax/Base/ETH/OP/Polygon/Sol/Uni) |
+
+### Token Support
+
+| Operation | Supported Tokens |
+|-----------|-----------------|
+| Bridge | USDC only |
+| Swap | USDC, EURC, USDT, USDe, DAI, PYUSD, WBTC, WETH, WSOL, WAVAX, WPOL, NATIVE |
+| Send | Any token (alias or contract address) |
+
+---
+
+## 5.9 Error Recovery
+
+### Error Types
+- **Hard errors**: Exceptions (validation, config, auth) → stop execution immediately
+- **Soft errors**: Partial completion → return `BridgeResult` with step details for recovery
+
+### Bridge Transfer Steps
+
+```
+1. approve          → Enable contract to spend USDC
+2. burn             → Burn USDC on source chain
+3. fetchAttestation → Wait for Circle's attestation signature
+4. mint             → Mint USDC on destination chain
+```
+
+### Recovery Pattern
+
+```typescript
+// Check which step failed
+const failedStep = result.steps.find(s => s.state === "error");
+console.log(`Failed at: ${failedStep.name}, error: ${failedStep.errorMessage}`);
+
+// Retry from failure point
+const recovered = await kit.retry(result, {
+  from: sourceAdapter,
+  to: destAdapter,
+});
+```
+
+### Best Practices
+- Test on testnets first
+- Use dedicated RPC providers (Alchemy, QuickNode) with fallbacks
+- Persist bridge state for recovery
+- Verify completed steps before retrying
+- Implement exponential backoff
+
+---
+
+## 5.10 SDK Reference
+
+### Core Methods
+
+| Method | Description | Returns |
+|--------|-------------|---------|
+| `bridge(params)` | Cross-chain USDC transfer via CCTP | `BridgeResult` |
+| `estimateBridge(params)` | Preview gas + fees without execution | `EstimateResult` |
+| `swap(params)` | Same-chain token exchange | `SwapResult` |
+| `estimateSwap(params)` | Preview swap rate + fees | `SwapEstimate` |
+| `send(params)` | Wallet-to-wallet transfer | `BridgeStep` |
+| `estimateSend(params)` | Preview send gas cost | `EstimatedGas` |
+| `getSupportedChains(op?)` | List supported chains | `ChainDefinition[]` |
+| `on(action, handler)` | Register event listener | `void` |
+| `off(action, handler)` | Remove event listener | `void` |
+
+### Bridge Events
+
+| Event | Trigger |
+|-------|---------|
+| `bridge.approve` | Token approval completed |
+| `bridge.burn` | Source chain burn completed |
+| `bridge.attestation` | CCTP attestation received |
+| `bridge.mint` | Destination chain mint completed |
+| `*` | Wildcard for all events |
+
+### Key Type Definitions
+
+**BridgeParams:**
+```typescript
+{
+  amount: string;                    // Human-readable (e.g., "100.50")
+  from: { adapter, chain };          // Source adapter + chain
+  to: { adapter, chain } | address;  // Destination
+  token?: "USDC";                    // Default USDC
+  config?: { transferSpeed, customFee, maxFee };
+}
+```
+
+**SwapParams:**
+```typescript
+{
+  amountIn: string;                  // Human-readable
+  from: { adapter, chain };          // Source
+  tokenIn: SupportedToken;           // e.g., "USDT"
+  tokenOut: SupportedToken;          // e.g., "USDC"
+  config?: { kitKey, slippageBps, stopLimit, allowanceStrategy, customFee };
+}
+```
+
+**SendParams:**
+```typescript
+{
+  amount: string;                    // Human-readable
+  from: { adapter, chain };          // Source
+  to: string | { adapter, chain };   // Destination address or adapter
+  token?: TokenAlias | address;      // Default USDC
+}
+```
+
+**BridgeResult:**
+```typescript
+{
+  state: "pending" | "success" | "error";
+  steps: BridgeStep[];       // Each: { name, state, txHash?, explorerUrl?, error? }
+  amount: string;
+  source: { chain, address };
+  destination: { chain, address };
+}
+```
+
+**SwapResult:**
+```typescript
+{
+  txHash: string;
+  amountIn: string;
+  amountOut?: string;        // Best-effort lookup
+  tokenIn, tokenOut: SupportedToken;
+  chain: Blockchain;
+  explorerUrl?: string;
+  fees?: any;
+}
+```
+
+### Blockchain Enum (partial)
+```typescript
+enum Blockchain {
+  Ethereum, Ethereum_Sepolia, Arbitrum, Arbitrum_Sepolia,
+  Arc_Testnet, Avalanche, Avalanche_Fuji, Base, Base_Sepolia,
+  Polygon, Polygon_Amoy_Testnet, Solana, Solana_Devnet,
+  Sonic, Sonic_Testnet, Unichain, Unichain_Sepolia,
+  // ... 50+ total entries
+}
+```
+
+---
+
 # Quick Reference
 
 ## Key Addresses
@@ -1729,7 +2317,11 @@ GatewayMinter:     0x0022222ABE238Cc2C7Bb1f21003F0a260052475B
 IdentityRegistry:  0x8004A818BFB912233c491871b3d84c89A494BD9e  (ERC-8004)
 ReputationRegistry:0x8004B663056A597Dffe9eCcC1965A193B7388713  (ERC-8004)
 ValidationRegistry:0x8004Cb1BF31DAf7788923b405b754f57acEB4272  (ERC-8004)
+AgenticCommerce:   0x0747EEf0706327138c69792bF28Cd525089e4583  (ERC-8183)
 FxEscrow:          0x867650F5eAe8df91445971f14d89fd84F0C9a9f8
+USYC Token:        0xe9185F0c5F296Ed1797AaE4238D26CCaBEadb86C
+USYC Entitlements: 0xcc205224862c7641930c87679e98999d23c26113
+USYC Teller:       0x9fdF14c5B14173D74C08Af27AebFf39240dC105A
 CREATE2 Factory:   0x4e59b44847b379578588920cA78FbF26c0B4956C
 Multicall3:        0xcA11bde05977b3631167028862bE2a173976CA11
 Permit2:           0x000000000022D473030F116dDEE9F6B43aC78BA3

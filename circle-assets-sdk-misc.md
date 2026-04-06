@@ -946,6 +946,35 @@ codex mcp add circle --url https://api.circle.com/v1/codegen/mcp
 
 **Kiro:** Workspace-level (`./.kiro/settings/mcp.json`) or user-level config. Uses `npx @circle/mcp-server` with `CIRCLE_BASE_URL` env var.
 
+### Circle Skills (AI 开发者技能包)
+
+> Launched: 2026-03-14 | Source: https://github.com/circlefin/skills
+
+开源 AI 技能包，让 Cursor/Claude Code/Codex 等 AI 编码助手直接生成 Circle 集成代码。
+
+**安装:**
+```bash
+# Claude Code
+/plugin marketplace add circlefin/skills
+
+# Vercel Skills CLI
+npx skills add circlefin/skills
+```
+
+**8 个 Skills:**
+
+| Skill | 功能 |
+|-------|------|
+| `use-arc` | Arc 链配置、RPC、合约部署、USDC 桥接 |
+| `use-usdc` | USDC 转账、余额查询、合约地址 |
+| `bridge-stablecoin` | App Kit Bridge 跨链 USDC |
+| `use-circle-wallets` | 钱包类型选择决策框架 |
+| `use-developer-controlled-wallets` | 开发者控制钱包 API |
+| `use-user-controlled-wallets` | 用户控制钱包 SDK |
+| `use-modular-wallets` | 模块化钱包 (ERC-6900) |
+| `use-gateway` | Gateway + Nanopayments |
+| `use-smart-contract-platform` | 合约模板部署 |
+
 ---
 
 ## 11. Cross-Chain Transfers
@@ -1057,6 +1086,9 @@ codex mcp add circle --url https://api.circle.com/v1/codegen/mcp
 ### 2026 Highlights
 
 **USDC (2026):**
+- Mar 17: USDC on **Injective Testnet**
+- Mar 09: USDC on **EDGE Mainnet**
+- Mar 04: USDC on **Morph Mainnet**
 - Feb 26: Morph Hoodi Testnet support
 - Feb 09: EDGE Testnet support
 - Jan 23: EVM transfer quickstarts consolidated
@@ -1065,6 +1097,7 @@ codex mcp add circle --url https://api.circle.com/v1/codegen/mcp
 - Jan 23: Transfer guide expanded to all supported EVM chains
 
 **xReserve (2026):**
+- Mar 24: **Movement** mainnet + testnet support (USDCx)
 - Feb 27: Cardano mainnet + preprod testnet support (USDCx)
 - Jan 27: Aleo mainnet + testnet support (USDCx)
 - Jan 15: USDC-backed Stablecoin Specification published

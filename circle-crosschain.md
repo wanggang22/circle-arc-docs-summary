@@ -1163,10 +1163,11 @@ const settlement = await facilitator.settle(payload, requirements);
 
 ## 6. Release Notes (2026)
 
-### 6.1 Bridge Kit 2026
+### 6.1 Bridge Kit / App Kit 2026
 
 | Date | Change |
 |------|--------|
+| 2026.03.17 | **Bridge Kit 正式迁移到 Arc App Kit** (`docs.arc.network/app-kit/bridge`)。npm 包 `@circle-fin/bridge-kit` 仍可用，但文档统一到 App Kit。App Kit 新增 Swap + Send 能力 |
 | 2026.02.27 | Forwarding Service support added |
 | 2026.01.28 | Monad mainnet + testnet support |
 | 2026.01.14 | Enhanced `estimate()` with token/amount/source/destination fields; error type guards (`isKitError`, `isBalanceError`, `isOnchainError`); helper functions (`getErrorCode`, `getErrorMessage`) |
@@ -1175,6 +1176,9 @@ const settlement = await facilitator.settle(payload, requirements);
 
 | Date | Change |
 |------|--------|
+| 2026.03.17 | **Injective Testnet** support (Domain 29) |
+| 2026.03.10 | **Morph Mainnet** support (Domain 30) |
+| 2026.03.10 | **EDGE Mainnet** support (Domain 28) |
 | 2026.02.26 | Morph Hoodi Testnet support |
 | 2026.02.XX | HyperCore transfer documentation modernized |
 | 2026.02.09 | EDGE Testnet support |
@@ -1182,10 +1186,13 @@ const settlement = await facilitator.settle(payload, requirements);
 | 2026.01.12 | Complete documentation rewrite; Bridge Kit emphasized as preferred integration |
 | 2026.01.08 | Finality-indexed pricing model |
 
+**CCTP V1 废弃时间线**: 2026年7月开始，10个月逐步淘汰。V2 已覆盖除 Aptos/Noble/Sui 外所有链（Aptos/Sui 将在废弃前获得 V2 支持，Noble/Cosmos 将有中间方案）。V2 改名为 "CCTP"，V1 标记为 "CCTP V1 (Legacy)"。
+
 ### 6.3 Gateway 2026
 
 | Date | Change |
 |------|--------|
+| 2026.03.19 | 统一余额 Quickstart 更新，同时支持 Circle Wallets 和 permissionless 实现 |
 | 2026.02.11 | Gateway Forwarding Service reference added |
 | 2026.02.07 | SCA delegate management support |
 | 2026.02.02 | Documentation standardization |
@@ -1201,7 +1208,7 @@ const settlement = await facilitator.settle(payload, requirements);
 | **Speed** | 8-20s (Fast), 15-19min (Std) | Same as CCTP | <500ms |
 | **Model** | Point-to-point burn/mint | Wrapper around CCTP | Unified balance |
 | **Fees** | 0-14 bps (Fast), Free (Std) | Same + custom fees | 0.5 bps + gas |
-| **Chains** | 23+ | 18+ | 12+ |
+| **Chains** | 24+ | 20+ (App Kit) | 12+ |
 | **Complexity** | Manual contract calls | Single SDK call | Deposit + API + mint |
 | **Best For** | Direct integration | Quick integration | Instant transfers |
 | **Custody** | Self-managed | Self-managed | Non-custodial (7-day trustless) |
